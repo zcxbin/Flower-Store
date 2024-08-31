@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from models import Customer, Bill, Flower, Customer_BuyingDate, BuyingDate
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 
 
 def create_customer(db: Session, customer_request):
@@ -126,9 +126,6 @@ def get_customers_by_month_and_year(db: Session, month: int, year: int):
     return customers
 
 
-from sqlalchemy import and_
-
-
 def get_customers_by_quarter_and_year(db: Session, quarter: int, year: int):
     month_ranges = {
         1: (1, 3),
@@ -154,3 +151,62 @@ def get_customers_by_year(db: Session, year: int):
         (BuyingDate.YYYYMMDD // 10000 == year)
     ).all()
     return customers
+
+
+def get_revenue_by_day(db: Session, day: int, month: int, year: int):
+    revenue = db.query(func.sum(Bill.amount)).join(BuyingDate).filter(
+        and_(
+            (BuyingDate.YYYYMMDD // 10000 == year),
+            (BuyingDate.YYYYMMDD % 10000 // 100 == month),
+            (BuyingDate.YYYYMMDD % 100 == day)
+        )
+    ).scalar()
+
+    if revenue is None or revenue == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Revenue not found')
+
+    return f'revenue {day}/{month}/{year} is {revenue}'
+
+
+def get_revenue_by_month(db: Session, month: int, year: int):
+    revenue = db.query(func.sum(Bill.amount)).join(BuyingDate).filter(
+        and_(
+            (BuyingDate.YYYYMMDD // 10000 == year),
+            (BuyingDate.YYYYMMDD % 10000 // 100 == month)
+        )
+    ).scalar()
+    if revenue is None or revenue == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Revenue not found')
+    return f'revenue {month}/{year} is {revenue}'
+
+
+def get_revenue_by_quarter(db: Session, quarter: int, year: int):
+    month_ranges = {
+        1: (1, 3),
+        2: (4, 6),
+        3: (7, 9),
+        4: (10, 12)
+    }
+    start_month, end_month = month_ranges.get(quarter, (1, 12))
+
+    revenue = db.query(func.sum(Bill.amount)).join(BuyingDate).filter(
+        and_(
+            (BuyingDate.YYYYMMDD // 10000 == year),
+            (BuyingDate.YYYYMMDD % 10000 // 100 >= start_month),
+            (BuyingDate.YYYYMMDD % 10000 // 100 <= end_month)
+        )
+    ).scalar()
+    if revenue is None or revenue == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Revenue not found')
+    return f'revenue {quarter} of {year} is {revenue}'
+
+
+
+def get_revenue_by_year(db: Session, year: int):
+    revenue = db.query(func.sum(Bill.amount)).join(BuyingDate).filter(
+        and_
+        (BuyingDate.YYYYMMDD // 10000 == year)
+    ).scalar()
+    if revenue is None or revenue == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Revenue not found')
+    return f'revenue {year} is {revenue}'
