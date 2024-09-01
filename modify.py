@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette import status
-
-from models import Customer, Bill
+from sqlalchemy.exc import IntegrityError
+from models import Customer, Bill, Revenue
 
 
 def sum_total_bill(db: Session):
@@ -35,3 +35,19 @@ def set_customer_level(db: Session):
 
         db.commit()
         db.refresh(customer_model)
+
+
+def calculate_and_save_revenue(db: Session):
+    # Tính tổng doanh thu từ bảng 'Bill'
+    total_revenue = db.query(func.sum(Bill.amount)).scalar() or 0
+
+    # Tạo một bản ghi mới trong bảng 'Revenue' với tổng doanh thu
+    revenue_record = Revenue(total_revenue=total_revenue)
+    db.add(revenue_record)
+
+    try:
+        db.commit()
+        db.refresh(revenue_record)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error saving revenue")

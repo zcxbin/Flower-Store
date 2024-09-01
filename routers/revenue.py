@@ -2,9 +2,14 @@ from fastapi import APIRouter, Path, status, Query
 from dependency import db_dependency
 import crud
 from schemas import CustomerRequest
-from modify import sum_total_bill, set_customer_level
+from modify import sum_total_bill, set_customer_level, calculate_and_save_revenue
 
 router = APIRouter()
+
+@router.get('/read_revenue')
+async def read_revenue(db: db_dependency):
+    calculate_and_save_revenue(db)
+    return crud.get_revenue(db)
 
 
 @router.get('/read_revenue_by_day')

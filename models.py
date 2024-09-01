@@ -7,6 +7,7 @@ class Bill(Base):
     __tablename__ = 'bill'
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(Integer)
+    bill_date = Column(Integer)
     customer_id = Column(Integer, ForeignKey('customer.id'))
     buying_date_id = Column(Integer, ForeignKey('buying_date.id'))
 
@@ -43,7 +44,6 @@ class BuyingDate(Base):
     __tablename__ = 'buying_date'
     id = Column(Integer, primary_key=True, index=True)
     YYYYMMDD = Column(Integer)
-
     bills = relationship('Bill', back_populates='buying_date')
 
     # Quan hệ nhiều-nhiều với Customer thông qua bảng trung gian Customer_BuyingDate
@@ -70,8 +70,6 @@ class Date(Base):
     Buying_date_id = Column(Integer, ForeignKey('buying_date.id'))
     Leap_year = Column(Boolean)
 
-    revenue = relationship('Revenue', back_populates='date')
-
 
 class Flower(Base):
     __tablename__ = 'flower'
@@ -95,8 +93,6 @@ class Level(Base):
 
 class Revenue(Base):
     __tablename__ = 'revenue'
-    id = Column(Integer, primary_key=True, index=True)
-    date_id = Column(Integer, ForeignKey('date.id'))
-    amount = Column(Integer)
 
-    date = relationship('Date', back_populates='revenue')
+    id = Column(Integer, primary_key=True, index=True)
+    total_revenue = Column(Integer)

@@ -14,8 +14,7 @@ class CustomerRequest(BaseModel):
 class BillRequest(BaseModel):
     amount: int = Field(gt=0)
     customer_id: int = Field(gt=0)
-    buying_date_id: int
-
+    bill_date: int = Field(gt=10000000)
 
 class FlowerRequest(BaseModel):
     name: str = Field(min_length=0)
