@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def read_bills(db: db_dependency):
+async def get_bills(db: db_dependency):
     return crud.get_bills(db)
 
 

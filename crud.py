@@ -27,7 +27,6 @@ def update_customer(db: Session, customer_id: int, customer_request):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Customer not found')
 
     customer_model.name = customer_request.name
-    customer_model.level_id = customer_request.level_id
     db.commit()
     db.refresh(customer_model)
     return customer_model
